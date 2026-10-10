@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      minLegth: 3,
+      minLength: 3,
       maxLength: 20,
     },
     lName: {
@@ -40,13 +40,13 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: Object.values(GenderEnum),
+      enum: Object.keys(GenderEnum),
       default: GenderEnum.MALE,
     },
     profielImage: String,
     provider: {
       type: String,
-      enum: Object.values(ProviderEnum),
+      enum: Object.keys(ProviderEnum),
       default:  ProviderEnum.SYSTEM,
     },
     isConfirmed: {
