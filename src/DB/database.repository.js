@@ -53,7 +53,7 @@ export const create = async ({
   return doc;
 };
 
-export const insertMany = async ({ model, data }) => {
+export const insertMany = async ({ model, data , options = {} }) => {
   return await model.insertMany(data, options);
 };
 
@@ -89,3 +89,29 @@ export const findByIdAndUpdate = async ({ model, id, update, options }) => {
     { ...options, returnDocument: "after", runValidators: true },
   );
 };
+
+
+
+
+
+
+export const insertOne = async ({ model, data }) => {
+  const doc = await model.insertOne(data);
+
+  console.log(doc);
+
+  return doc;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+

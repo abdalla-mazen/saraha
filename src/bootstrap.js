@@ -1,11 +1,12 @@
 import express from "express";
 import connectionDB from "./DB/connectionDB.js";
-import userRouter from "./modules/users/user.controller.js";
 import sucessResponse from "./utils/response/sucess.response.js";
 import {
   globalErrorHandler,
   NotFoundException,
 } from "./utils/response/error.response.js";
+import authRouter from "./modules/auth/auth.controller.js";
+import userRouter from "./modules/user/user.controller.js";
 
 
 
@@ -27,7 +28,8 @@ const bootstrap = async () => {
   await connectionDB();
 
   // Routes
-  app.use("/users", userRouter);
+  app.use("/auth", authRouter);
+  app.use("/user", userRouter);
 
 
   app.use("{/*demo}", (req, res, next) => {
