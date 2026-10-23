@@ -18,3 +18,6 @@ export const REFRESH_ADMIN_TOKEN_SIGNTURE = process.env.REFRESH_ADMIN_TOKEN_SIGN
 export const EXPIRE_IN_ACCESS = process.env.EXPIRE_IN_ACCESS;
 export const EXPIRE_IN_REFRESH = process.env.EXPIRE_IN_REFRESH;
 export const CLIENT_ID = process.env.CLIENT_ID;
+
+export const USER_EMAIL  = process.env.USER_EMAIL ;
+export const USER_PASS = process.env.USER_PASS;

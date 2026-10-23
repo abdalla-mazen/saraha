@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { GenderEnum, ProviderEnum, RoleEnum } from "../../utils/enums/user.enum.js";
+import {
+  GenderEnum,
+  ProviderEnum,
+  RoleEnum,
+} from "../../utils/enums/user.enum.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -52,12 +56,11 @@ const userSchema = new mongoose.Schema(
     provider: {
       type: String,
       enum: Object.keys(ProviderEnum),
-      default:  ProviderEnum.SYSTEM,
+      default: ProviderEnum.SYSTEM,
     },
-    isConfirmed: {
-      type: Boolean,
-      default: false,
-    },
+    isConfirmed: Date,
+    forgrtPasswordOtp: String,
+    confirmEmailOtp: String,
   },
   {
     timestamps: true,
@@ -68,6 +71,5 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-// 
-const userModel = mongoose.models.User || mongoose.model("User",userSchema)
-export default userModel
+const userModel = mongoose.models.User || mongoose.model("User", userSchema);
+export default userModel;

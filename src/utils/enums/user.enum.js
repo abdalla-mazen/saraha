@@ -4,8 +4,8 @@ export const GenderEnum = {
 };
 
 export const ProviderEnum = {
-  SYSTEM: 0,
-  GMAIL: 1,
+  SYSTEM: "SYSTEM",
+  GMAIL: "GMAIL",
 };
 
 export const RoleEnum = {

@@ -7,10 +7,13 @@ import {
   ConflictException,
   UnauthorizedException,
 } from "../../utils/response/error.response.js";
-import { create, findOne } from "../../DB/database.repository.js";
+import { create, findOne, updateOne } from "../../DB/database.repository.js";
 import { createLoginCredentials } from "../../common/security/token.security.js";
 import { OAuth2Client } from "google-auth-library";
 import { CLIENT_ID } from "../../../config/config.service.js";
+import generateOTP from "../../utils/generateOtp/generate-otp.js";
+import { emailEvent } from "../../utils/events/email.events.js";
+import { ProviderEnum } from "../../utils/enums/user.enum.js";
 
 // signup
 export const signup = async (req, res, next) => {
@@ -25,7 +28,20 @@ export const signup = async (req, res, next) => {
     req.body.phone = Encrypt(String(req.body.phone));
   }
   req.body.password = await hashValue(req.body.password);
-  const user = await create({ model: userModel, data: [req.body] });
+  const otp = generateOTP();
+  const hashedOtp = await hashValue(otp.toString());
+
+  const user = await create({
+    model: userModel,
+    data: [{ ...req.body, confirmEmailOtp: hashedOtp }],
+  });
+
+  emailEvent.emit("confirmEmail", {
+    to: user.email,
+    code: otp,
+    firstName: user.fName,
+  });
+
   sucessResponse({
     res,
     statusCode: 201,
@@ -61,6 +77,40 @@ export const signin = async (req, res, next) => {
   });
 };
 
+export const confirmEmail = async (req, res, next) => {
+  const { email, otp } = req.body;
+  const user = await findOne({
+    model: userModel,
+    filter: {
+      email,
+      isConfirmed: { $exists: false },
+      provider: ProviderEnum.SYSTEM,
+    },
+  });
+  if (!user) {
+    throw BadRequestException({ message: "invalid user" });
+  }
+  const verifiyOtp = await compareValue(otp, user.confirmEmailOtp);
+  if (!verifiyOtp) {
+    throw BadRequestException({ message: "invalid otp" });
+  }
+  await updateOne({
+    model: userModel,
+    filter: {
+      email,
+    },
+    update: {
+      $set: {
+        isConfirmed: new Date(),
+      },
+      $unset: {
+        confirmEmailOtp: 1,
+      },
+    },
+  });
+  sucessResponse({ res, message: "your account is confirmed" });
+};
+
 async function verifyGoogleAccount({ idToken }) {
   const client = new OAuth2Client();
 
@@ -91,7 +141,7 @@ export const loginWithGmail = async (req, res) => {
       sucessResponse({ res, message: "Done", data: { tokens } });
     }
   } else {
-    const newUser = await dbService.create({
+    const newUser = await create({
       model: userModel,
       data: [
         {
@@ -106,4 +156,76 @@ export const loginWithGmail = async (req, res) => {
     const tokens = await createLoginCredentials({ user: newUser });
     sucessResponse({ res, message: "Done", statusCode: 201, data: { tokens } });
   }
+};
+
+export const forget = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await findOne({
+    model: userModel,
+    filter: {
+      email,
+      isConfirmed: { $exists: true },
+      provider: ProviderEnum.SYSTEM,
+    },
+  });
+  if (!user) {
+    throw BadRequestException({ message: "invalid user" });
+  }
+  const otp = generateOTP();
+  const hashedOtp = await hashValue(otp.toString());
+  await updateOne({
+    model: userModel,
+    filter: {
+      email,
+      isConfirmed: { $exists: true },
+      provider: ProviderEnum.SYSTEM,
+    },
+    update: {
+      forgrtPasswordOtp: hashedOtp,
+    },
+  });
+  emailEvent.emit("forgetPassword", {
+    to: user.email,
+    code: otp,
+    firstName: user.fName,
+  });
+
+  sucessResponse({ res, message: "Done" });
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { email, otp, password } = req.body;
+  const user = await findOne({
+    model: userModel,
+    filter: {
+      email,
+      isConfirmed: { $exists: true },
+      provider: ProviderEnum.SYSTEM,
+    },
+  });
+  if (!user) {
+    throw BadRequestException({ message: "invalid user" });
+  }
+  const verifiyOtp = await compareValue(otp, user.forgrtPasswordOtp);
+  if (!verifiyOtp) {
+    throw BadRequestException({ message: "invalid otp" });
+  }
+  const hashedPassword = await hashValue(password);
+  await updateOne({
+    model: userModel,
+    filter: {
+      email,
+      isConfirmed: { $exists: true },
+      provider: ProviderEnum.SYSTEM,
+    },
+    update: {
+      $set: {
+        password: hashedPassword,
+      },
+      $unset: {
+        forgrtPasswordOtp: 1,
+      },
+    },
+  });
+  sucessResponse({ res, message: "Done" });
 };
