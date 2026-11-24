@@ -1,0 +1,2 @@
+::1 - - [24/Nov/2026:19:03:13 +0000] "POST /auth/signin HTTP/1.1" 429 42 "-" "PostmanRuntime/2.17.1"
+::1 - - [24/Nov/2026:19:03:18 +0000] "POST /auth/signup HTTP/1.1" 201 560 "-" "PostmanRuntime/2.17.1"
