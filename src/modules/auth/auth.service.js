@@ -7,7 +7,13 @@ import {
   ConflictException,
   UnauthorizedException,
 } from "../../utils/response/error.response.js";
-import { create, findOne, updateOne } from "../../DB/database.repository.js";
+import {
+  create,
+  deleteOne,
+  findById,
+  findOne,
+  updateOne,
+} from "../../DB/database.repository.js";
 import { createLoginCredentials } from "../../common/security/token.security.js";
 import { OAuth2Client } from "google-auth-library";
 import { CLIENT_ID } from "../../../config/config.service.js";
@@ -56,7 +62,7 @@ export const signin = async (req, res, next) => {
     model: userModel,
     filter: { email: req.body.email },
   });
-
+console.log("user", user);
   if (!user) {
     throw UnauthorizedException("Invalid Email or Password");
   }
@@ -77,6 +83,7 @@ export const signin = async (req, res, next) => {
   });
 };
 
+// confirm email
 export const confirmEmail = async (req, res, next) => {
   const { email, otp } = req.body;
   const user = await findOne({
@@ -111,9 +118,10 @@ export const confirmEmail = async (req, res, next) => {
   sucessResponse({ res, message: "your account is confirmed" });
 };
 
+
+// verify google account
 async function verifyGoogleAccount({ idToken }) {
   const client = new OAuth2Client();
-
   const ticket = await client.verifyIdToken({
     idToken,
     audience: CLIENT_ID,
@@ -123,6 +131,7 @@ async function verifyGoogleAccount({ idToken }) {
   return payload;
 }
 
+// login with gmail
 export const loginWithGmail = async (req, res) => {
   const { idToken } = req.body;
 
@@ -158,6 +167,7 @@ export const loginWithGmail = async (req, res) => {
   }
 };
 
+// forget password
 export const forget = async (req, res, next) => {
   const { email } = req.body;
   const user = await findOne({
@@ -193,6 +203,7 @@ export const forget = async (req, res, next) => {
   sucessResponse({ res, message: "Done" });
 };
 
+// reset password
 export const resetPassword = async (req, res, next) => {
   const { email, otp, password } = req.body;
   const user = await findOne({
@@ -229,3 +240,4 @@ export const resetPassword = async (req, res, next) => {
   });
   sucessResponse({ res, message: "Done" });
 };
+

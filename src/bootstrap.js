@@ -8,16 +8,38 @@ import {
 import authRouter from "./modules/auth/auth.controller.js";
 import userRouter from "./modules/user/user.controller.js";
 import { resolve } from "path";
-
+import messageRouter from "./modules/messages/message.controller.js";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimitMiddleware from "./common/rate-limit.js";
+import { loggerMiddleware } from "./utils/logger/logger.js";
 
 const app = express();
 
 const port = 3000;
 
-const bootstrap = async () => {
-  app.use("/uploads", express.static(resolve("./src/uploads")));
-  app.use(express.json());
 
+const bootstrap = async () => {
+  // connect to database
+  await connectionDB();
+
+  // logger middleware
+  app.use(loggerMiddleware);
+
+  // middlewares
+  app.use(express.json(), cors(), helmet());
+
+  // rate limit middleware
+  app.use(rateLimitMiddleware());
+
+
+  // Routes
+  app.use("/auth", authRouter);
+  app.use("/user", userRouter);
+  app.use("/message", messageRouter);
+  app.use("/uploads", express.static(resolve("./src/uploads")));
+
+  // Home route
   app.get("/", (req, res) => {
     sucessResponse({
       res,
@@ -26,20 +48,18 @@ const bootstrap = async () => {
     });
   });
 
-  await connectionDB();
-
-  // Routes
-  app.use("/auth", authRouter);
-  app.use("/user", userRouter);
-
-
+  // 404 route
   app.use("{/*demo}", (req, res, next) => {
     NotFoundException({
       message: `URL: ${req.originalUrl} with method ${req.method} not found`,
     });
   });
 
+
+  // global error handler
   app.use(globalErrorHandler);
+
+  // start server
   app.listen(port, () => {
     console.log(`app listening on port ${port}`);
   });
