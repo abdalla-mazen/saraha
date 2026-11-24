@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+<<<<<<< HEAD
+=======
+import { connectRedis } from "./redis.connection.js";
+>>>>>>> master
 
 export default async function connectionDB() {
   try {
@@ -6,6 +10,10 @@ export default async function connectionDB() {
       serverSelectionTimeoutMS: 5000,
     });
     console.log("DB Connected Successful");
+<<<<<<< HEAD
+=======
+      await connectRedis();
+>>>>>>> master
   } catch (error) {
     console.log("DB Connected Failed");
   }

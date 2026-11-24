@@ -91,10 +91,6 @@ export const findByIdAndUpdate = async ({ model, id, update, options }) => {
 };
 
 
-
-
-
-
 export const insertOne = async ({ model, data }) => {
   const doc = await model.insertOne(data);
 
